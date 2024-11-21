@@ -4,6 +4,24 @@
     <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageProjectUrl>https://github.com/leeteke/LeeTeke.SqlDo</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>sql;sqlcommand;sqlserver;sqlite;mysql</PackageTags>
+    <RepositoryUrl>https://github.com/leeteke/LeeTeke.SqlDo</RepositoryUrl>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Description>[非ORM]本工具主要为Sql语言命令生成器;简单封装了关于Mysql,SQLite,SqlServer的连接使用。并且封装了自定义数据集合类。</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>

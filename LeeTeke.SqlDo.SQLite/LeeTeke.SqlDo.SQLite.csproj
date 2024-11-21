@@ -4,14 +4,30 @@
 	  <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>[非ORM]核心库主要功能是Sql语言命令生成;
+本库连接SQLite数据库所用，依赖Microsoft.Data.Sqlite.Core包，简单封装了连接类 [SqLiteService]。</Description>
+    <PackageProjectUrl>https://github.com/leeteke/LeeTeke.SqlDo</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/leeteke/LeeTeke.SqlDo</RepositoryUrl>
+    <PackageTags>sql;sqlcommand;sqlite</PackageTags>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.10" />
+    <None Include="..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LeeTeke.SqlDo\LeeTeke.SqlDo.csproj" />
+    <PackageReference Include="LeeTeke.SqlDo" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.0" />
   </ItemGroup>
 
 </Project>
