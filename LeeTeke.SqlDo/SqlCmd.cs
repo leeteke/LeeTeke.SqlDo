@@ -108,7 +108,7 @@ namespace LeeTeke.SqlDo
         /// </summary>
         /// <param name="selectCmd"></param>
         /// <param name="fromCmd"></param>
-        /// <param name="whereCmd"></param>
+        /// <param name="whereCmd">这里注意若要使用则必须带有WHERE关键词开头</param>
         /// <param name="sortCmd"></param>
         /// <param name="pageIndex"></param>
         /// <param name="pageSize"></param>
@@ -264,6 +264,7 @@ namespace LeeTeke.SqlDo
         {
             string p => SqlAntiInjection.SecurityStr(p).security ? $"'{p}'" : throw new Exception($"非法值 {p}"),
             SqlString p => $"'{p}'",
+            short p => $"{p}",
             int p => $"{p}",
             long p => $"{p}",
             float p => $"{p}",
@@ -274,6 +275,7 @@ namespace LeeTeke.SqlDo
             SqlFormulaType p => p.Value,
             SqlFunctionValue p => p.ToString(),
             IEnumerable p => $"({IEnumerableConver(p)})",
+            null=>"NULL",
             _ => $"{value}",
         };
 
