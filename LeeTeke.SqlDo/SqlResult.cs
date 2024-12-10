@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 
 namespace LeeTeke.SqlDo
 {
@@ -50,6 +51,12 @@ namespace LeeTeke.SqlDo
             set => this[index][Array.IndexOf(Header, header)] = value;
         }
 
+        public object this[int index,int headerIndex]
+        {
+            get => this[index][headerIndex];
+
+            set => this[index][headerIndex] = value;
+        }
 
 
         public new void Add(object[] value)

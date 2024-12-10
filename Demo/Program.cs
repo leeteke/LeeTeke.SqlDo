@@ -16,6 +16,7 @@ namespace Demo
 
             var mysql = new MySqltest();
 
+
             mysql.Init();
             //创建测试
             //mysql.CreateTest();

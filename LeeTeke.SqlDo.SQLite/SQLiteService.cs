@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using System.Data.Common;
+using System.Threading;
 
 namespace LeeTeke.SqlDo.SQLite
 {
@@ -110,12 +111,13 @@ namespace LeeTeke.SqlDo.SQLite
                 if (!SqlAntiInjection.SecurityStr(pwd).security)
                     throw new SqlDoException(string.Join("不符合标准的值：{0}", pwd));
 
-                using var dbCmd = GetDbCommand(
+                using var newConnection = GetNewConnection();
+                using var cmd = newConnection.CreateCommand();
+                cmd.CommandText =
                     $"ATTACH DATABASE '{newDbPath}{newDbName}.db' AS {newDbName} KEY '{pwd}';" +
                     $"SELECT sqlcipher_export('{newDbName}');" +
-                    $"DETACH DATABASE {newDbName};"
-                );
-                dbCmd.ExecuteNonQuery();
+                    $"DETACH DATABASE {newDbName};";
+                cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
@@ -138,13 +140,14 @@ namespace LeeTeke.SqlDo.SQLite
             {
                 if (!SqlAntiInjection.SecurityStr(pwd).security)
                     throw new SqlDoException(string.Join("不符合标准的值：{0}", pwd));
-
-                using var dbCmd = await GetDbCommandAsync(
+                using var newConnection = await GetNewConnectionAsync();
+                using var cmd = newConnection.CreateCommand();
+                cmd.CommandText =
                     $"ATTACH DATABASE '{newDbPath}{newDbName}.db' AS {newDbName} KEY '{pwd}';" +
                     $"SELECT sqlcipher_export('{newDbName}');" +
-                    $"DETACH DATABASE {newDbName};"
-                ).ConfigureAwait(false);
-                await dbCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                    $"DETACH DATABASE {newDbName};";
+             
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -170,13 +173,14 @@ namespace LeeTeke.SqlDo.SQLite
                 if (!SqlAntiInjection.SecurityStr(pwd).security)
                     throw new SqlDoException(string.Join("不符合标准的值：{0}", pwd));
 
-                using var dbCmd = await GetDbCommandAsync(
-                    $"ATTACH DATABASE '{newDbPath}{newDbName}.db' AS {newDbName} KEY '{pwd}';" +
+                using var newConnection = await GetNewConnectionAsync(cancellationToken);
+                using var cmd = newConnection.CreateCommand();
+                cmd.CommandText =
+                 $"ATTACH DATABASE '{newDbPath}{newDbName}.db' AS {newDbName} KEY '{pwd}';" +
                     $"SELECT sqlcipher_export('{newDbName}');" +
-                    $"DETACH DATABASE {newDbName};"
-                    , cancellationToken
-                ).ConfigureAwait(false);
-                await dbCmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                    $"DETACH DATABASE {newDbName};";
+              
+                await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -197,12 +201,13 @@ namespace LeeTeke.SqlDo.SQLite
         {
             try
             {
-                using var dbCmd = GetDbCommand(
+                using var newConnection = GetNewConnection();
+                using var cmd = newConnection.CreateCommand();
+                cmd.CommandText =
                    $"ATTACH DATABASE '{dbPath}{dbName}.db' AS {dbName} KEY '';" +
                    $"SELECT sqlcipher_export('{dbName}');" +
-                   $"DETACH DATABASE {dbName};"
-                );
-                dbCmd.ExecuteNonQuery();
+                   $"DETACH DATABASE {dbName};";
+                cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
@@ -223,12 +228,14 @@ namespace LeeTeke.SqlDo.SQLite
             try
             {
 
-                using var dbCmd = await GetDbCommandAsync(
+                using var newConnection = await GetNewConnectionAsync();
+                using var cmd = newConnection.CreateCommand();
+                cmd.CommandText =
                     $"ATTACH DATABASE '{dbPath}{dbName}.db' AS {dbName} KEY '';" +
                    $"SELECT sqlcipher_export('{dbName}');" +
-                   $"DETACH DATABASE {dbName};"
-                   ).ConfigureAwait(false);
-                await dbCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                   $"DETACH DATABASE {dbName};";
+                  
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -252,13 +259,14 @@ namespace LeeTeke.SqlDo.SQLite
             {
 
 
-                using var dbCmd = await GetDbCommandAsync(
-                   $"ATTACH DATABASE '{dbPath}{dbName}.db' AS {dbName} KEY '';" +
-                   $"SELECT sqlcipher_export('{dbName}');" +
-                   $"DETACH DATABASE {dbName};"
-                    , cancellationToken
-                ).ConfigureAwait(false);
-                await dbCmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                using var newConnection = await GetNewConnectionAsync(cancellationToken);
+                using var cmd = newConnection.CreateCommand();
+                cmd.CommandText =
+                    $"ATTACH DATABASE '{dbPath}{dbName}.db' AS {dbName} KEY '';" +
+                    $"SELECT sqlcipher_export('{dbName}');" +
+                    $"DETACH DATABASE {dbName};";
+            
+                await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -267,7 +275,7 @@ namespace LeeTeke.SqlDo.SQLite
 
         }
 
-      
+
 
         /// <summary>
         /// 重置加密数据库的密码
@@ -281,8 +289,10 @@ namespace LeeTeke.SqlDo.SQLite
                 if (!SqlAntiInjection.SecurityStr(newPwd).security)
                     throw new SqlDoException(string.Join("不符合标准的值：{0}", newPwd));
 
-                using var dbCmd = GetDbCommand($"PRAGMA rekey = '{newPwd}'");
-                dbCmd.ExecuteNonQuery();
+                using var newConnection = GetNewConnection();
+                using var cmd = newConnection.CreateCommand();
+                cmd.CommandText =$"PRAGMA rekey = '{newPwd}'";
+                cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
@@ -304,8 +314,10 @@ namespace LeeTeke.SqlDo.SQLite
                 if (!SqlAntiInjection.SecurityStr(newPwd).security)
                     throw new SqlDoException(string.Join("不符合标准的值：{0}", newPwd));
 
-                using var dbCmd = await GetDbCommandAsync($"PRAGMA rekey = '{newPwd}'").ConfigureAwait(false);
-                await dbCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                using var newConnection = await GetNewConnectionAsync();
+                using var cmd = newConnection.CreateCommand();
+                cmd.CommandText = $"PRAGMA rekey = '{newPwd}'";
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -329,9 +341,10 @@ namespace LeeTeke.SqlDo.SQLite
                 if (!SqlAntiInjection.SecurityStr(newPwd).security)
                     throw new SqlDoException(string.Join("不符合标准的值：{0}", newPwd));
 
-                using var dbCmd = await GetDbCommandAsync($"PRAGMA rekey = '{newPwd}'", cancellationToken
-                ).ConfigureAwait(false);
-                await dbCmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                using var newConnection = await GetNewConnectionAsync(cancellationToken);
+                using var cmd = newConnection.CreateCommand();
+                cmd.CommandText = $"PRAGMA rekey = '{newPwd}'";
+                await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

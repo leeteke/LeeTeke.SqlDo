@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LeeTeke.SqlDo
@@ -60,64 +61,7 @@ namespace LeeTeke.SqlDo
         /// <param name="dbConnectionStringBuilder"></param>
         /// <returns></returns>
         public abstract Task ConnectInitializationAsync(DbConnectionStringBuilder dbConnectionStringBuilder, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// 执行命令
-        /// </summary>
-        /// <param name="cmd">命令</param>
-        /// <returns>DbDataReader</returns>
-        /// <exception cref="SqlDoException"></exception>
-        public DbDataReader ExecuteCmd(string cmd)
-        {
-            try
-            {
-                using var myCmd = GetDbCommand(cmd);
-                return myCmd.ExecuteReader();
-            }
-            catch (Exception ex)
-            {
-                throw new SqlDoException(string.Format("Execute:{0}", cmd), ex);
-            }
-        }
-
-        /// <summary>
-        /// 执行命令
-        /// </summary>
-        /// <param name="cmd"></param>
-        /// <returns></returns>
-        /// <exception cref="SqlDoException"></exception>
-        public async Task<DbDataReader> ExecuteCmdAsync(string cmd)
-        {
-            try
-            {
-                using var mycmd = await GetDbCommandAsync(cmd).ConfigureAwait(false);
-                return await mycmd.ExecuteReaderAsync().ConfigureAwait(false); ;
-
-            }
-            catch (Exception ex)
-            {
-                throw new SqlDoException(string.Format("ExecuteAsync:{0}", cmd), ex);
-            }
-        }
-        /// <summary>
-        /// 执行命令
-        /// </summary>
-        /// <param name="cmd">命令</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        /// <exception cref="SqlDoException"></exception>
-        public async Task<DbDataReader> ExecuteCmdAsync(string cmd, CancellationToken cancellationToken)
-        {
-            try
-            {
-                using var mycmd = await GetDbCommandAsync(cmd, cancellationToken).ConfigureAwait(false);
-                return await mycmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false); ;
-            }
-            catch (Exception ex)
-            {
-                throw new SqlDoException(string.Format("ExecuteAsync:{0}", cmd), ex);
-            }
-        }
+        
 
 
         /// <summary>
@@ -130,7 +74,10 @@ namespace LeeTeke.SqlDo
         {
             try
             {
-                using var read = ExecuteCmd(cmd);
+                using var connection = GetNewConnection();
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
+                using var read = myCmd.ExecuteReader();
                 var result = DbDataReaderToConverter(read);
                 return result;
             }
@@ -151,7 +98,10 @@ namespace LeeTeke.SqlDo
         {
             try
             {
-                using var read = await ExecuteCmdAsync(cmd);
+                using var connection = await GetNewConnectionAsync().ConfigureAwait(false);
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
+                using var read = await myCmd.ExecuteReaderAsync().ConfigureAwait(false); ;
                 var result = await DbDataReaderToConverterAsync(read);
                 return result;
             }
@@ -173,7 +123,11 @@ namespace LeeTeke.SqlDo
         {
             try
             {
-                using var read = await ExecuteCmdAsync(cmd, cancellationToken);
+
+                using var connection = await GetNewConnectionAsync(cancellationToken).ConfigureAwait(false);
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
+                using var read = await myCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 var result = await DbDataReaderToConverterAsync(read, cancellationToken);
                 return result;
             }
@@ -194,7 +148,9 @@ namespace LeeTeke.SqlDo
         {
             try
             {
-                using var myCmd = GetDbCommand(cmd);
+                using var connection = GetNewConnection();
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
                 int row = myCmd.ExecuteNonQuery();
                 return row;
             }
@@ -216,7 +172,9 @@ namespace LeeTeke.SqlDo
             try
             {
 
-                using var myCmd = await GetDbCommandAsync(cmd).ConfigureAwait(false);
+                using var connection = await GetNewConnectionAsync().ConfigureAwait(false);
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
                 int row = await myCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
                 return row;
             }
@@ -232,13 +190,15 @@ namespace LeeTeke.SqlDo
         /// <param name="cancellation"></param>
         /// <returns>返回执行数量</returns>
         /// <exception cref="SqlDoException"></exception>
-        public async Task<int> SetAsync(string cmd, CancellationToken cancellation)
+        public async Task<int> SetAsync(string cmd, CancellationToken cancellationToken)
         {
             try
             {
 
-                using var myCmd = await GetDbCommandAsync(cmd, cancellation).ConfigureAwait(false);
-                int row = await myCmd.ExecuteNonQueryAsync(cancellation).ConfigureAwait(false);
+                using var connection = await GetNewConnectionAsync(cancellationToken).ConfigureAwait(false);
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
+                int row = await myCmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                 return row;
             }
             catch (Exception ex)
@@ -257,8 +217,10 @@ namespace LeeTeke.SqlDo
         {
             try
             {
-                using var read = GetDbCommand(cmd);
-                return read.ExecuteScalar();
+                using var connection = GetNewConnection();
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
+                return myCmd.ExecuteScalar();
             }
             catch (Exception ex)
             {
@@ -278,8 +240,11 @@ namespace LeeTeke.SqlDo
         {
             try
             {
-                using var read = await GetDbCommandAsync(cmd).ConfigureAwait(false);
-                return await read.ExecuteScalarAsync().ConfigureAwait(false);
+                using var connection = await GetNewConnectionAsync().ConfigureAwait(false);
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
+                var numberr = await myCmd.ExecuteScalarAsync().ConfigureAwait(false);
+                return numberr;
             }
             catch (Exception ex)
             {
@@ -299,8 +264,11 @@ namespace LeeTeke.SqlDo
         {
             try
             {
-                using var read = await GetDbCommandAsync(cmd, cancellationToken).ConfigureAwait(false);
-                return await read.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                using var connection = await GetNewConnectionAsync(cancellationToken).ConfigureAwait(false);
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
+                var number = await myCmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                return number;
             }
             catch (Exception ex)
             {
@@ -308,8 +276,6 @@ namespace LeeTeke.SqlDo
                 throw new SqlDoException(string.Format("CalculateAsync:{0}", cmd), ex);
             }
         }
-
-
 
         /// <summary>
         /// 获取帮助方法
@@ -446,27 +412,5 @@ namespace LeeTeke.SqlDo
             }
         }
 
-
-        protected DbCommand GetDbCommand(string cmd)
-        {
-            var connection = GetNewConnection();
-            var myCmd = connection.CreateCommand();
-            myCmd.CommandText = cmd;
-            return myCmd;
-        }
-        protected async Task<DbCommand> GetDbCommandAsync(string cmd)
-        {
-            var connection = await GetNewConnectionAsync().ConfigureAwait(false);
-            var myCmd = connection.CreateCommand();
-            myCmd.CommandText = cmd;
-            return myCmd;
-        }
-        protected async Task<DbCommand> GetDbCommandAsync(string cmd, CancellationToken cancellationToken)
-        {
-            var connection = await GetNewConnectionAsync(cancellationToken).ConfigureAwait(false);
-            var myCmd = connection.CreateCommand();
-            myCmd.CommandText = cmd;
-            return myCmd;
-        }
     }
 }
