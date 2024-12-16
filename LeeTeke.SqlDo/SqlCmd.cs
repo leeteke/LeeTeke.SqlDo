@@ -76,6 +76,7 @@ namespace LeeTeke.SqlDo
             };
         }
 
+
         /// <summary>
         /// 分页
         /// </summary>
@@ -90,18 +91,13 @@ namespace LeeTeke.SqlDo
         /// <returns></returns>
         public static string Paging(string sheet, SqlConditionAND? and, SqlConditionOR? or, SqlSortArgs? sort, string[] keys, ulong pageIndex, ulong pageSize, SQLVersion ver)
         {
-            var where = WhereSplicing(and, or);
-            var keyStr = KeysToString(keys);
 
-            return ver switch
-            {
-                SQLVersion.SqlServer2012H => $"SELECT {keyStr} FROM {sheet}{where}{sort} OFFSET {(pageIndex - 1) * pageSize}  ROWS FETCH NEXT {pageSize} ROWS ONLY",
-                SQLVersion.SqlServer2008L => $"SELECT TOP {pageSize} {keyStr} FROM (SELECT ROW_Number() Over({sort}) AS RowNumber,* FROM {sheet} ) Temp_ROW {where} AND RowNumber>{(pageIndex - 1) * pageSize}",
-                SQLVersion.MySql => $"SELECT {keyStr} FROM {sheet}{where}{sort} LIMIT {(pageIndex - 1) * pageSize},{pageSize}",
-                SQLVersion.SQLite => $"SELECT {keyStr} FROM {sheet}{where}{sort} LIMIT {(pageIndex - 1) * pageSize} offset {pageSize}",
-                _ => "Erro",
-            };
+            return Offset(sheet, and, or, sort, keys,  (pageIndex - 1) * pageSize, pageSize, ver);
+          
         }
+
+
+
 
         /// <summary>
         /// 分页命令拼接法
@@ -116,12 +112,57 @@ namespace LeeTeke.SqlDo
         /// <returns></returns>
         public static string PagingCmdFormat(string selectCmd, string fromCmd, string? whereCmd, string? sortCmd, ulong pageIndex, ulong pageSize, SQLVersion ver)
         {
+
+            return OffsetCmdFormat(selectCmd, fromCmd, whereCmd, sortCmd,  (pageIndex - 1) * pageSize, pageSize, ver);
+
+          
+        }
+
+
+        /// <summary>
+        /// 位移查询
+        /// </summary>
+        /// <param name="selectCmd"></param>
+        /// <param name="fromCmd"></param>
+        /// <param name="whereCmd">这里注意若要使用则必须带有WHERE关键词开头</param>
+        /// <param name="sortCmd"></param>
+        /// <param name="offset">位移多少个</param>
+        /// <param name="limit">多少数据</param>
+        /// <param name="ver">版本号</param>
+        /// <returns></returns>
+        public static string OffsetCmdFormat(string selectCmd, string fromCmd, string? whereCmd, string? sortCmd, ulong offset, ulong limit, SQLVersion ver)
+        {
             return ver switch
             {
-                SQLVersion.SqlServer2012H => $"SELECT {selectCmd} FROM {fromCmd} {whereCmd} {sortCmd} OFFSET {(pageIndex - 1) * pageSize}  ROWS FETCH NEXT {pageSize} ROWS ONLY",
-                SQLVersion.SqlServer2008L => $"SELECT TOP {pageSize} {selectCmd} FROM (SELECT ROW_Number() Over({sortCmd}) AS RowNumber,* FROM {fromCmd} ) Temp_ROW {whereCmd} AND RowNumber>{(pageIndex - 1) * pageSize}",
-                SQLVersion.MySql => $"SELECT {selectCmd} FROM {fromCmd} {whereCmd} {sortCmd} LIMIT {(pageIndex - 1) * pageSize},{pageSize}",
-                SQLVersion.SQLite => $"SELECT {selectCmd} FROM {fromCmd} {whereCmd} {sortCmd} LIMIT {(pageIndex - 1) * pageSize} offset {pageSize}",
+                SQLVersion.SqlServer2012H =>$"SELECT {selectCmd} FROM {fromCmd} {whereCmd} {sortCmd} OFFSET {offset} ROWS  FETCH NEXT {limit} ROWS ONLY",
+                SQLVersion.SqlServer2008L => $"SELECT TOP {limit} {selectCmd} FROM (SELECT ROW_Number() Over({sortCmd}) AS RowNumber,* FROM {fromCmd} ) Temp_ROW {whereCmd} AND RowNumber > {offset}",
+                SQLVersion.MySql or SQLVersion.SQLite => $"SELECT {selectCmd} FROM {fromCmd} {whereCmd} {sortCmd} LIMIT {limit} OFFSET {offset}",
+                _ => "Erro",
+            };
+        }
+
+        /// <summary>
+        /// 位移查询
+        /// </summary>
+        /// <param name="sheet">表名</param>
+        /// <param name="and">and参数</param>
+        /// <param name="or">or参数</param>
+        /// <param name="sort">排序</param>
+        /// <param name="keys">属性名</param>
+        /// <param name="offset">位移多少个</param>
+        /// <param name="limit">多少数据</param>
+        /// <param name="ver">版本号</param>
+        /// <returns></returns>
+        public static string Offset(string sheet, SqlConditionAND? and, SqlConditionOR? or, SqlSortArgs? sort, string[] keys, ulong offset, ulong limit, SQLVersion ver)
+        {
+            var where = WhereSplicing(and, or);
+            var keyStr = KeysToString(keys);
+
+            return ver switch
+            {
+                SQLVersion.SqlServer2012H => $"SELECT {keyStr} FROM {sheet} {where} {sort} OFFSET {offset} ROWS  FETCH NEXT {limit} ROWS ONLY",
+                SQLVersion.SqlServer2008L =>$"SELECT TOP {limit} {keyStr} FROM (SELECT ROW_Number() Over({sort}) AS RowNumber,* FROM {sheet} ) Temp_ROW {where} AND RowNumber > {offset}",
+                SQLVersion.MySql or SQLVersion.SQLite => $"SELECT {keyStr} FROM {sheet} {where} {sort} LIMIT {limit} OFFSET {offset}",
                 _ => "Erro",
             };
         }
@@ -275,7 +316,7 @@ namespace LeeTeke.SqlDo
             SqlFormulaType p => p.Value,
             SqlFunctionValue p => p.ToString(),
             IEnumerable p => $"({IEnumerableConver(p)})",
-            null=>"NULL",
+            null => "NULL",
             _ => $"{value}",
         };
 
@@ -379,6 +420,22 @@ namespace LeeTeke.SqlDo
         public string Paging(string key, string value, SqlSortArgs? sort, string[] keys, ulong pageIndex, ulong pageSize) => SqlCmd.Paging(Sheet, new SqlConditionAND { new(key, value, SqlOperator.Equal) }, null, sort, keys, pageIndex, pageSize, Version);
 
         public string PagingCmdFormat(string selectCmd, string fromCmd, string? whereCmd, string? sortCmd, ulong pageIndex, ulong pageSize) => SqlCmd.PagingCmdFormat(selectCmd, fromCmd, whereCmd, sortCmd, pageIndex, pageSize, Version);
+
+        #endregion
+
+        #region 数据位移查询
+
+
+        public string Offset(SqlConditionAND? and, SqlConditionOR? or, SqlSortArgs? sort, string[] keys, ulong offset, ulong limit) => SqlCmd.Offset(Sheet, and, or, sort, keys, offset, limit, Version);
+
+        public string Offset(SqlConditionAND? and, SqlSortArgs? sort, string[] keys, ulong offset, ulong limit) => SqlCmd.Offset(Sheet, and, null, sort, keys, offset, limit, Version);
+
+        public string Offset(SqlSortArgs? sort, string[] keys, ulong offset, ulong limit) => SqlCmd.Offset(Sheet, null, null, sort, keys, offset, limit, Version);
+
+        public string Offset(string[] keys, ulong offset, ulong limit) => SqlCmd.Offset(Sheet, null, null, null, keys, offset, limit, Version);
+        public string Offset(string key, string value, SqlSortArgs? sort, string[] keys, ulong offset, ulong limit) => SqlCmd.Offset(Sheet, new SqlConditionAND { new(key, value, SqlOperator.Equal) }, null, sort, keys, offset, limit, Version);
+
+        public string OffsetCmdFormat(string selectCmd, string fromCmd, string? whereCmd, string? sortCmd, ulong offset, ulong limit) => SqlCmd.OffsetCmdFormat(selectCmd, fromCmd, whereCmd, sortCmd, offset, limit, Version);
 
         #endregion
 

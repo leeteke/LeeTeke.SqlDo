@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,8 @@ namespace LeeTeke.SqlDo
 
         public override string ToString()
         {
-            return _string.Replace("'","\\'");
+            return _string.Replace(@"\", @"\\").Replace(@"'",@"\'");
+
         }
     }
 }
