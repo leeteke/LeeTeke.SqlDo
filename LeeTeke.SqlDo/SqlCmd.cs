@@ -92,8 +92,8 @@ namespace LeeTeke.SqlDo
         public static string Paging(string sheet, SqlConditionAND? and, SqlConditionOR? or, SqlSortArgs? sort, string[] keys, ulong pageIndex, ulong pageSize, SQLVersion ver)
         {
 
-            return Offset(sheet, and, or, sort, keys,  (pageIndex - 1) * pageSize, pageSize, ver);
-          
+            return Offset(sheet, and, or, sort, keys, (pageIndex - 1) * pageSize, pageSize, ver);
+
         }
 
 
@@ -113,9 +113,9 @@ namespace LeeTeke.SqlDo
         public static string PagingCmdFormat(string selectCmd, string fromCmd, string? whereCmd, string? sortCmd, ulong pageIndex, ulong pageSize, SQLVersion ver)
         {
 
-            return OffsetCmdFormat(selectCmd, fromCmd, whereCmd, sortCmd,  (pageIndex - 1) * pageSize, pageSize, ver);
+            return OffsetCmdFormat(selectCmd, fromCmd, whereCmd, sortCmd, (pageIndex - 1) * pageSize, pageSize, ver);
 
-          
+
         }
 
 
@@ -134,7 +134,7 @@ namespace LeeTeke.SqlDo
         {
             return ver switch
             {
-                SQLVersion.SqlServer2012H =>$"SELECT {selectCmd} FROM {fromCmd} {whereCmd} {sortCmd} OFFSET {offset} ROWS  FETCH NEXT {limit} ROWS ONLY",
+                SQLVersion.SqlServer2012H => $"SELECT {selectCmd} FROM {fromCmd} {whereCmd} {sortCmd} OFFSET {offset} ROWS  FETCH NEXT {limit} ROWS ONLY",
                 SQLVersion.SqlServer2008L => $"SELECT TOP {limit} {selectCmd} FROM (SELECT ROW_Number() Over({sortCmd}) AS RowNumber,* FROM {fromCmd} ) Temp_ROW {whereCmd} AND RowNumber > {offset}",
                 SQLVersion.MySql or SQLVersion.SQLite => $"SELECT {selectCmd} FROM {fromCmd} {whereCmd} {sortCmd} LIMIT {limit} OFFSET {offset}",
                 _ => "Erro",
@@ -161,7 +161,7 @@ namespace LeeTeke.SqlDo
             return ver switch
             {
                 SQLVersion.SqlServer2012H => $"SELECT {keyStr} FROM {sheet} {where} {sort} OFFSET {offset} ROWS  FETCH NEXT {limit} ROWS ONLY",
-                SQLVersion.SqlServer2008L =>$"SELECT TOP {limit} {keyStr} FROM (SELECT ROW_Number() Over({sort}) AS RowNumber,* FROM {sheet} ) Temp_ROW {where} AND RowNumber > {offset}",
+                SQLVersion.SqlServer2008L => $"SELECT TOP {limit} {keyStr} FROM (SELECT ROW_Number() Over({sort}) AS RowNumber,* FROM {sheet} ) Temp_ROW {where} AND RowNumber > {offset}",
                 SQLVersion.MySql or SQLVersion.SQLite => $"SELECT {keyStr} FROM {sheet} {where} {sort} LIMIT {limit} OFFSET {offset}",
                 _ => "Erro",
             };
@@ -235,7 +235,17 @@ namespace LeeTeke.SqlDo
                 }
                 if (condition[i].key != null && condition[i].value != null)
                 {
-                    reulst[i] = $"{condition[i].key} {GetOperator(condition[i].perator)} {GetValueString(condition[i].value)}";
+
+                    if (condition[i].perator == SqlOperator.Like || condition[i].perator == SqlOperator.NotLike)
+                    {
+                        reulst[i] = $"{condition[i].key} {GetOperator(condition[i].perator)} {new SqlLikeString($"{condition[i].value}")}";
+
+                    }
+                    else
+                    {
+                        reulst[i] = $"{condition[i].key} {GetOperator(condition[i].perator)} {GetValueString(condition[i].value)}";
+                    }
+
                 }
 
             }
@@ -303,14 +313,9 @@ namespace LeeTeke.SqlDo
         /// <returns></returns>
         public static string GetValueString(object value) => value switch
         {
-            string p => SqlAntiInjection.SecurityStr(p).security ? $"'{p}'" : throw new Exception($"非法值 {p}"),
-            SqlString p => $"'{p}'",
-            short p => $"{p}",
-            int p => $"{p}",
-            long p => $"{p}",
-            float p => $"{p}",
-            double p => $"{p}",
-            decimal p => $"{p}",
+            string p => $"'{SqlString.Transfer(p)}'",
+            SqlString p => p.ToString(),
+            SqlLikeString p => p.ToString(),
             Enum p => $"{p.GetHashCode()}",
             DateTime p => $"'{p:yyyy-MM-dd HH:mm:ss.fff}'",
             SqlFormulaType p => p.Value,

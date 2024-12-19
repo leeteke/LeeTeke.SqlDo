@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace LeeTeke.SqlDo
 {
     /// <summary>
-    /// sql字符串 自动将'符号格式化，方便某些string写入
+    /// sql字符串过滤
     /// </summary>
     public class SqlString
     {
@@ -21,8 +21,25 @@ namespace LeeTeke.SqlDo
 
         public override string ToString()
         {
-            return _string.Replace(@"\", @"\\").Replace(@"'",@"\'");
+            return $"'{Transfer(_string)}'";
 
         }
+
+
+        /// <summary>
+        /// 转义
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static string Transfer(string str) => str.Replace(@"\", @"\\").Replace(@"'", @"\'");
+
+        /// <summary>
+        /// 相似转义
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static string LikeTransfer(string str) => Transfer(str).Replace(@"%", @"\%").Replace(@"_", @"\_");
     }
+
+
 }
