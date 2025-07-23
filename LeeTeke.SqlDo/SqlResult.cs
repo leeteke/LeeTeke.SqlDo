@@ -10,6 +10,9 @@ namespace LeeTeke.SqlDo
     public class SqlResult : List<object[]>
     {
         private string[] _header;
+        /// <summary>
+        /// 列头
+        /// </summary>
         public string[] Header { get => _header; }
 
         public SqlResult(int cloumn)

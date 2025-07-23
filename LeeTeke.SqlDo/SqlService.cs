@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,7 +62,7 @@ namespace LeeTeke.SqlDo
         /// <param name="dbConnectionStringBuilder"></param>
         /// <returns></returns>
         public abstract Task ConnectInitializationAsync(DbConnectionStringBuilder dbConnectionStringBuilder, CancellationToken cancellationToken);
-        
+
 
 
         /// <summary>
@@ -88,6 +89,9 @@ namespace LeeTeke.SqlDo
         }
 
 
+
+
+
         /// <summary>
         /// 获取数据
         /// </summary>
@@ -110,7 +114,6 @@ namespace LeeTeke.SqlDo
                 throw new SqlDoException(string.Format("GetAsync:{0}", cmd), ex);
             }
         }
-
 
         /// <summary>
         /// 获取数据
@@ -136,6 +139,80 @@ namespace LeeTeke.SqlDo
                 throw new SqlDoException(string.Format("GetAsync:{0}", cmd), ex);
             }
         }
+
+        /// <summary>
+        /// 获取数据
+        /// </summary>
+        /// <param name="cmd">命令</param>
+        /// <param name="mapper"></param>
+        /// <returns>SqlResult</returns>
+        /// <exception cref="SqlDoException"></exception>
+        public List<T> Get<T>(string cmd, Func<SqlDataMapper<T>, SqlDataMapper<T>> mapper) where T : new()
+        {
+            try
+            {
+                using var connection = GetNewConnection();
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
+                using var read = myCmd.ExecuteReader();
+                var result = DbDataReaderToConverter(read, mapper);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new SqlDoException(string.Format("Get:{0}", cmd), ex);
+            }
+        }
+        /// <summary>
+        /// 获取数据
+        /// </summary>
+        /// <param name="cmd">命令</param>
+        /// <param name="mapper"></param>
+        /// <returns>SqlResult</returns>
+        /// <exception cref="SqlDoException"></exception>
+        public async Task<List<T>> GetAsync<T>(string cmd, Func<SqlDataMapper<T>, SqlDataMapper<T>> mapper) where T : new()
+        {
+            try
+            {
+                using var connection = await GetNewConnectionAsync().ConfigureAwait(false);
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
+                using var read = await myCmd.ExecuteReaderAsync().ConfigureAwait(false); ;
+                var result = await DbDataReaderToConverterAsync<T>(read, mapper);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new SqlDoException(string.Format("GetAsync:{0}", cmd), ex);
+            }
+        }
+
+
+        /// <summary>
+        /// 获取数据
+        /// </summary>
+        /// <param name="cmd">命令</param>
+        /// <param name="mapper"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>SqlResult</returns>
+        /// <exception cref="SqlDoException"></exception>
+        public async Task<List<T>> GetAsync<T>(string cmd, Func<SqlDataMapper<T>, SqlDataMapper<T>> mapper, CancellationToken cancellationToken) where T : new()
+        {
+            try
+            {
+                using var connection = await GetNewConnectionAsync(cancellationToken).ConfigureAwait(false);
+                using var myCmd = connection.CreateCommand();
+                myCmd.CommandText = cmd;
+                using var read = await myCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false); ;
+                var result = await DbDataReaderToConverterAsync(read, mapper, cancellationToken);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new SqlDoException(string.Format("GetAsync:{0}", cmd), ex);
+            }
+        }
+
 
 
         /// <summary>
@@ -187,7 +264,7 @@ namespace LeeTeke.SqlDo
         /// 设置数据，包括更新，写入与删除
         /// </summary>
         /// <param name="cmd"></param>
-        /// <param name="cancellation"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns>返回执行数量</returns>
         /// <exception cref="SqlDoException"></exception>
         public async Task<int> SetAsync(string cmd, CancellationToken cancellationToken)
@@ -332,6 +409,9 @@ namespace LeeTeke.SqlDo
             }
         }
 
+
+
+
         /// <summary>
         /// DbDataReader转换器
         /// </summary>
@@ -371,6 +451,8 @@ namespace LeeTeke.SqlDo
                 throw new SqlDoException(string.Format("DbDataReaderToConverterAsync:{0}", ex.Message), ex);
             }
         }
+
+
 
         /// <summary>
         /// DbDataReader转换器
@@ -412,5 +494,209 @@ namespace LeeTeke.SqlDo
             }
         }
 
+
+
+        /// <summary>
+        /// DbDataReader转换器
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="reader"></param>
+        /// <param name="mapper"></param>
+        /// <returns></returns>
+        /// <exception cref="SqlDoException"></exception>
+        public static List<T> DbDataReaderToConverter<T>(DbDataReader reader, Func<SqlDataMapper<T>, SqlDataMapper<T>> mapper) where T : new()
+        {
+            try
+            {
+                List<T> result = [];
+
+                var sqlMapper = mapper(new SqlDataMapper<T>());
+
+                string[]? keys = null;
+                object[]? firstRowData = null;
+
+                while (reader.Read())
+                {
+                    keys = new string[reader.FieldCount];
+                    firstRowData = new object[reader.FieldCount];
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        keys[i] = reader.GetName(i);
+                        firstRowData[i] = reader.GetValue(i);
+                    }
+                    break;
+                }
+
+                if (keys != null)
+                {
+
+                    sqlMapper.SetKeys(keys);
+
+                    var firstData = new T();
+
+                    for (int i = 0; i < firstRowData!.Length; i++)
+                    {
+                        sqlMapper.SetValue(firstData, i, firstRowData[i]);
+                    }
+                    result.Add(firstData);
+
+                    while (reader.Read())
+                    {
+
+                        var nextData = new T();
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+
+                            sqlMapper.SetValue(nextData, i, reader.GetValue(i));
+
+                        }
+                        result.Add(nextData);
+                    }
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+
+                throw new SqlDoException(string.Format("DbDataReaderToConverter:{0}", ex.Message), ex);
+            }
+        }
+
+
+        /// <summary>
+        /// DbDataReader转换器
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="reader"></param>
+        /// <param name="mapper"></param>
+        /// <returns></returns>
+        /// <exception cref="SqlDoException"></exception>
+        public static async Task<List<T>> DbDataReaderToConverterAsync<T>(DbDataReader reader, Func<SqlDataMapper<T>, SqlDataMapper<T>> mapper) where T : new()
+        {
+            try
+            {
+
+                List<T> result = [];
+
+                var sqlMapper = mapper(new SqlDataMapper<T>());
+
+                string[] keys = null!;
+                object[] firstRowData = null!;
+
+                while (await reader.ReadAsync().ConfigureAwait(false))
+                {
+                    keys = new string[reader.FieldCount];
+                    firstRowData = new object[reader.FieldCount]; firstRowData = new object[reader.FieldCount];
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        keys[i] = reader.GetName(i);
+                        firstRowData[i] = reader.GetValue(i);
+                    }
+                    break;
+                }
+
+
+
+                if (keys != null)
+                {
+                    sqlMapper.SetKeys(keys);
+                    var firstData = new T();
+
+                    for (int i = 0; i < firstRowData.Length; i++)
+                    {
+                        sqlMapper.SetValue(firstData, i, firstRowData[i]);
+                    }
+                    result.Add(firstData);
+
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    {
+
+                        var nextData = new T();
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+
+                            sqlMapper.SetValue(nextData, i, reader.GetValue(i));
+
+                        }
+                        result.Add(nextData);
+                    }
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+
+                throw new SqlDoException(string.Format("DbDataReaderToConverterAsync:{0}", ex.Message), ex);
+            }
+        }
+
+        /// <summary>
+        /// DbDataReader转换器
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="reader"></param>
+        /// <param name="mapper"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="SqlDoException"></exception>
+        public static async Task<List<T>> DbDataReaderToConverterAsync<T>(DbDataReader reader, Func<SqlDataMapper<T>, SqlDataMapper<T>> mapper, CancellationToken cancellationToken) where T : new()
+        {
+            try
+            {
+                List<T> result = [];
+
+                var sqlMapper = mapper(new SqlDataMapper<T>());
+
+                string[] keys = null!;
+                object[] firstRowData = null!;
+
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    keys = new string[reader.FieldCount];
+                    firstRowData = new object[reader.FieldCount];
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        keys[i] = reader.GetName(i);
+                        firstRowData[i] = reader.GetValue(i);
+                    }
+                    break;
+                }
+
+
+
+
+                if (keys != null)
+                {
+                    sqlMapper.SetKeys(keys);
+
+                    var firstData = new T();
+
+                    for (int i = 0; i < firstRowData.Length; i++)
+                    {
+                        sqlMapper.SetValue(firstData, i, firstRowData[i]);
+                    }
+                    result.Add(firstData);
+
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+
+                        var nextData = new T();
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+
+                            sqlMapper.SetValue(nextData, i, reader.GetValue(i));
+
+                        }
+                        result.Add(nextData);
+                    }
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+
+                throw new SqlDoException(string.Format("DbDataReaderToConverterAsync:{0}", ex.Message), ex);
+            }
+        }
     }
 }

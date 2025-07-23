@@ -22,6 +22,21 @@ namespace LeeTeke.SqlDo
         }
 
         /// <summary>
+        /// 创建
+        /// </summary>
+        /// <param name="sheet">表名</param>
+        /// <param name="data">名称与值</param>
+        /// <returns></returns>
+        public static string Create(string sheet, IEnumerable<Dictionary<string, object>> data)
+        {
+            string keys = string.Join(',', data.First().Select(p=>p.Key));
+
+            string values = string.Join(',', data.Select(p => $"({string.Join(',', p.Select(z => GetValueString(z.Value)))})"));
+
+            return $"INSERT INTO {sheet} ({keys}) VALUES {values}"; ;
+        }
+
+        /// <summary>
         /// 删除
         /// </summary>
         /// <param name="sheet">表名</param>
@@ -387,6 +402,7 @@ namespace LeeTeke.SqlDo
 
         #region 创建
         public string Create(Dictionary<string, object> data) => SqlCmd.Create(Sheet, data);
+        public string Create(IEnumerable<Dictionary<string, object>> data) => SqlCmd.Create(Sheet, data);
         #endregion
 
         #region 删除
