@@ -9,11 +9,11 @@
 本库连接MySql数据库所用，依赖MySql.Data包，简单封装了连接类 [MySqlService]。</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/leeteke/LeeTeke.SqlDo</RepositoryUrl>
-    <RepositoryType>sql;sqlcommand;mysql</RepositoryType>
+    <RepositoryType>sql;sqlcommand;mysql;mapper;automapper;</RepositoryType>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.1.2</Version>
+    <Version>1.2.0</Version>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
   </PropertyGroup>
 
@@ -29,8 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LeeTeke.SqlDo" Version="1.1.2" />
-    <PackageReference Include="MySql.Data" Version="9.1.0" />
+    <PackageReference Include="LeeTeke.SqlDo" Version="1.2.0" />
+    <PackageReference Include="MySql.Data" Version="9.4.0" />
   </ItemGroup>
 
 </Project>

@@ -9,11 +9,11 @@
 本库连接SqlServer数据库所用，依赖Microsoft.Data.SqlClient包，简单封装了连接类 [SqlServerService]。</Description>
     <RepositoryUrl>https://github.com/leeteke/LeeTeke.SqlDo</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>sql;sqlcommand;sqlserver</PackageTags>
+    <PackageTags>sql;sqlcommand;sqlserver;mapper;automapper;</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.1.2</Version>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,8 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LeeTeke.SqlDo" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="LeeTeke.SqlDo" Version="1.2.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
   </ItemGroup>
 
 </Project>

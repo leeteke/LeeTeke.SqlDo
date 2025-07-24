@@ -9,11 +9,11 @@
     <PackageProjectUrl>https://github.com/leeteke/LeeTeke.SqlDo</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/leeteke/LeeTeke.SqlDo</RepositoryUrl>
-    <PackageTags>sql;sqlcommand;sqlite</PackageTags>
+    <PackageTags>sql;sqlcommand;sqlite;mapper;automapper;</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.1.2</Version>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,8 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LeeTeke.SqlDo" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.0" />
+    <PackageReference Include="LeeTeke.SqlDo" Version="1.2.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.7" />
   </ItemGroup>
 
 </Project>
