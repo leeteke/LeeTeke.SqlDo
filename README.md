@@ -4,7 +4,7 @@
 
 	** 版本v1.2.0 起增加了 手动配置映射与自动映射 查询结果对象的功能
 ## Nuget
-[![NUGET](https://img.shields.io/badge/nuget-1.2.1-blue.svg)](https://www.nuget.org/packages/LeeTeke.SqlDo)
+[![NUGET](https://img.shields.io/badge/nuget-1.2.2-blue.svg)](https://www.nuget.org/packages/LeeTeke.SqlDo)
 
     dotnet add package LeeTeke.SqlDo
 	dotnet add package LeeTeke.SqlDo.MySql

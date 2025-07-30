@@ -319,6 +319,9 @@ namespace LeeTeke.SqlDo
             SqlOperator.NotLike => "NOT LIKE",
             SqlOperator.In => "IN",
             SqlOperator.NotIn => "NOT IN",
+            SqlOperator.Is=> "IS",
+            SqlOperator.IsNot=>"IS NOT",
+            SqlOperator.Not=>"NOT",
             _ => "=",
         };
 

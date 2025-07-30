@@ -58,5 +58,17 @@ namespace LeeTeke.SqlDo
         /// 仅公式
         /// </summary>
         OnlyFormula=12,
+        /// <summary>
+        /// 真判断
+        /// </summary>
+        Is=13,
+        /// <summary>
+        /// 假判断
+        /// </summary>
+        IsNot=14,
+        /// <summary>
+        /// 否定运算
+        /// </summary>
+        Not,
     }
 }
