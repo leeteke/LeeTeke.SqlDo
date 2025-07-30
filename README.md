@@ -2,11 +2,14 @@
 [非ORM]  
 本工具主要为Sql语言命令生成器;简单封装了关于Mysql,SQLite,SqlServer的连接使用。并且封装了自定义数据集合类[SqlResult]。  
 
-	** v1.2.0增加了 手动配置映射与自动映射 查询结果对象的功能
+	** 版本v1.2.0 起增加了 手动配置映射与自动映射 查询结果对象的功能
 ## Nuget
-[![NUGET](https://img.shields.io/badge/nuget-1.2.0-blue.svg)](https://www.nuget.org/packages/LeeTeke.SqlDo)
+[![NUGET](https://img.shields.io/badge/nuget-1.2.1-blue.svg)](https://www.nuget.org/packages/LeeTeke.SqlDo)
 
-    dotnet add package LeeTeke.SqlDo --version 1.2.0
+    dotnet add package LeeTeke.SqlDo
+	dotnet add package LeeTeke.SqlDo.MySql
+	dotnet add package LeeTeke.SqlDo.SQLite
+	dotnet add package LeeTeke.SqlDo.SqlServer
 
 
 + LeeTeke.SqlDo --核心包，可用SqlCmd类进行命令生成，可将DbReader手动配置/自动映射到相关对象。  

@@ -29,7 +29,7 @@ namespace LeeTeke.SqlDo
         /// <returns></returns>
         public static string Create(string sheet, IEnumerable<Dictionary<string, object>> data)
         {
-            string keys = string.Join(',', data.First().Select(p=>p.Key));
+            string keys = string.Join(',', data.First().Select(p => p.Key));
 
             string values = string.Join(',', data.Select(p => $"({string.Join(',', p.Select(z => GetValueString(z.Value)))})"));
 
@@ -234,37 +234,38 @@ namespace LeeTeke.SqlDo
             return string.Join(',', keyValue.Select(p => $"{p.Key} = {GetValueString(p.Value)}"));
         }
 
-        internal static string[]? ConditionToList(SqlCondition? condition)
+        internal static List<string>? ConditionToList(SqlCondition? condition)
         {
             if (condition == null || condition.Count < 1)
             {
                 return null;
             }
-            string[] reulst = new string[condition.Count];
-            for (int i = 0; i < condition.Count; i++)
+            List<string> list = [];
+            foreach (var (key, value, perator) in condition)
             {
-                if (condition[i].perator == SqlOperator.OnlyFormula)
+
+                if (perator == SqlOperator.OnlyFormula)
                 {
-                    reulst[i] = GetValueString(condition[i].value);
+                    list.Add(GetValueString(value));
                     continue;
                 }
-                if (condition[i].key != null && condition[i].value != null)
+                if (key != null)
                 {
 
-                    if (condition[i].perator == SqlOperator.Like || condition[i].perator == SqlOperator.NotLike)
+                    if (perator == SqlOperator.Like || perator == SqlOperator.NotLike)
                     {
-                        reulst[i] = $"{condition[i].key} {GetOperator(condition[i].perator)} {new SqlLikeString($"{condition[i].value}")}";
+                        list.Add($"{key} {GetOperator(perator)} {new SqlLikeString($"{value}")}");
 
                     }
                     else
                     {
-                        reulst[i] = $"{condition[i].key} {GetOperator(condition[i].perator)} {GetValueString(condition[i].value)}";
+                        list.Add($"{key} {GetOperator(perator)} {GetValueString(value)}");
                     }
 
                 }
-
             }
-            return reulst;
+
+            return list;
         }
 
 
@@ -337,6 +338,7 @@ namespace LeeTeke.SqlDo
             SqlFunctionValue p => p.ToString(),
             IEnumerable p => $"({IEnumerableConver(p)})",
             null => "NULL",
+            DBNull => "NULL",
             _ => $"{value}",
         };
 

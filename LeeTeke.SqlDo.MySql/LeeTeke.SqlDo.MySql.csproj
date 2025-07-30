@@ -13,7 +13,7 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
   </PropertyGroup>
 
@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LeeTeke.SqlDo" Version="1.2.0" />
+    <PackageReference Include="LeeTeke.SqlDo" Version="1.2.1" />
     <PackageReference Include="MySql.Data" Version="9.4.0" />
   </ItemGroup>
 
